@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web site created using create-react-app" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
       Only files inside the `public` folder can be referenced from the HTML.
@@ -24,20 +22,103 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+  <title>Sample App</title>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+    .search-bar {
+      margin: 20px;
+    }
+
+    .filter {
+      margin-top: 10px;
+    }
+
+    .search-results {
+      margin-top: 20px;
+    }
+
+    .search-results li {
+      list-style: none;
+      padding: 5px;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search Star Wars characters..." />
+    <div class="filter">
+      <label for="genderFilter">Filter by Gender:</label>
+      <select id="genderFilter">
+        <option value="">All</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="n/a">Other</option>
+      </select>
+    </div>
+    <ul id="results"></ul>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const genderFilter = document.getElementById('genderFilter');
+    const results = document.getElementById('results');
+
+    // Function to fetch data from the Star Wars API
+    const fetchData = async (searchTerm) => {
+      try {
+        const response = await fetch(`https://swapi.py4e.com/api/people/?search=${searchTerm}`);
+        const data = await response.json();
+        return data.results; // Return the array of results
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
+      }
+    };
+
+    // Function to filter and display search results
+    const filterAndDisplayResults = async () => {
+      const searchTerm = searchInput.value;
+      const gender = genderFilter.value;
+
+      // Fetch results from API
+      const allResults = await fetchData(searchTerm);
+
+      // Filter by gender if selected
+      const filteredResults = allResults.filter((person) => {
+        if (gender) {
+          return person.gender === gender;
+        }
+        return true; // No filter applied
+      });
+
+      // Clear existing results
+      results.innerHTML = '';
+
+      // Render filtered results
+      filteredResults.forEach((person) => {
+        const li = document.createElement('li');
+        li.textContent = `${person.name} - Gender: ${person.gender}`;
+        results.appendChild(li);
+      });
+    };
+
+    // Event listener for input changes
+    searchInput.addEventListener('input', filterAndDisplayResults);
+
+    // Event listener for gender filter changes
+    genderFilter.addEventListener('change', filterAndDisplayResults);
+  </script>
+</body>
+</body>
+
 </html>
