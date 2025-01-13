@@ -55,10 +55,11 @@
   <div id="root"></div>
 
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search Star Wars characters..." />
+    <input type="text" id="searchInput" placeholder="Search Star Wars characters..."
+      oninput="searchCharacters(this.value)" />
     <div class="filter">
       <label for="genderFilter">Filter by Gender:</label>
-      <select id="genderFilter">
+      <select id="genderFilter" onchange="filterByGender(this.value)">
         <option value="">All</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
@@ -69,54 +70,62 @@
   </div>
 
   <script>
-    const searchInput = document.getElementById('searchInput');
-    const genderFilter = document.getElementById('genderFilter');
-    const results = document.getElementById('results');
+    // Inline storage of state-like variables
+    let lastSearchTerm = '';
+    let allResults = [];
+    let filteredResults = [];
 
-    // Function to fetch data from the Star Wars API
-    const fetchData = async (searchTerm) => {
+    // Main search function triggered by input
+    async function searchCharacters(value) {
+      lastSearchTerm = value; // Save last search term globally
+      if (value === '') {
+        clearResults();
+        return;
+      }
+      const url = `https://swapi.py4e.com/api/people/?search=${value}`;
       try {
-        const response = await fetch(`https://swapi.py4e.com/api/people/?search=${searchTerm}`);
+        const response = await fetch(url);
         const data = await response.json();
-        return data.results; // Return the array of results
+        allResults = data.results;
+        filteredResults = [...allResults];
+        displayResults(allResults);
       } catch (error) {
         console.error('Error fetching data:', error);
-        return [];
       }
-    };
+    }
 
-    // Function to filter and display search results
-    const filterAndDisplayResults = async () => {
-      const searchTerm = searchInput.value;
-      const gender = genderFilter.value;
+    // Gender filter function triggered by dropdown change
+    function filterByGender(gender) {
+      if (!allResults || allResults.length === 0) {
+        return;
+      }
+      if (gender === '') {
+        filteredResults = [...allResults];
+      } else {
+        filteredResults = allResults.filter((person) => person.gender === gender);
+      }
+      displayResults(filteredResults);
+    }
 
-      // Fetch results from API
-      const allResults = await fetchData(searchTerm);
-
-      // Filter by gender if selected
-      const filteredResults = allResults.filter((person) => {
-        if (gender) {
-          return person.gender === gender;
-        }
-        return true; // No filter applied
-      });
-
-      // Clear existing results
-      results.innerHTML = '';
-
-      // Render filtered results
-      filteredResults.forEach((person) => {
+    // Display results function with inline logic
+    function displayResults(results) {
+      const resultsContainer = document.getElementById('results');
+      resultsContainer.innerHTML = ''; // Clear previous results
+      for (let i = 0; i < results.length; i++) {
         const li = document.createElement('li');
-        li.textContent = `${person.name} - Gender: ${person.gender}`;
-        results.appendChild(li);
-      });
-    };
+        li.textContent = `${results[i].name}`;
+        resultsContainer.appendChild(li);
+      }
+    }
 
-    // Event listener for input changes
-    searchInput.addEventListener('input', filterAndDisplayResults);
-
-    // Event listener for gender filter changes
-    genderFilter.addEventListener('change', filterAndDisplayResults);
+    // Clear results with extra complexity
+    function clearResults() {
+      const ul = document.getElementById('results');
+      while (ul.firstChild) {
+        ul.removeChild(ul.firstChild);
+      }
+      filteredResults = [];
+    }
   </script>
 </body>
 </body>
